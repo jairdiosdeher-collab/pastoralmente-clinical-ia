@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>PastoralMente Clinical AI — Aplicación Completa</title>
+  <meta name="description" content="Plataforma clínica integral para psicoterapeutas y profesionales de la salud mental." />
+
+  <!-- PWA & Mobile Meta -->
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 / Babel Standalone / Lucide Icons via CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .pb-safe { padding-bottom: max(env(safe-area-inset-bottom, 1rem), 1rem); }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 9999px; }
+    @media print {
+      body { background: white !important; color: #0f172a !important; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // --- DATA & COMPENDIUMS ---
+    const INITIAL_PATIENTS = [
+      {
+        id: 'p-001',
+        fullName: 'Lucía Morales Herrera',
+        age: 34,
+        gender: 'Femenino',
+        fileNumber: 'EXP-2026-084',
+        admissionDate: '2026-06-12',
+        primaryDiagnosis: 'Trastorno Depresivo Mayor (CIE-11: 6A70 / DSM-5: 296.22)',
+        currentMedications: ['Sertralina', 'Trazodona'],
+        riskLevel: 'Moderado',
+        therapeuticProgressPercentage: 68,
+        adherencePercentage: 92,
+        personalHistory: 'Profesora. Cuadro reactivo a separación con anhedonia y pérdida de peso.',
+        pastoralModeAuthorized: true,
+        sessions: [
+          { sessionNumber: 1, date: '2026-08-01', mood: 3, anxiety: 8, sleep: 3, adherencePercentage: 80, clinicalNotes: 'Inicio de Sertralina 50mg. Llanto fácil.' },
+          { sessionNumber: 2, date: '2026-08-15', mood: 5, anxiety: 6, sleep: 5, adherencePercentage: 88, clinicalNotes: 'Activación conductual. Trazodona 25mg para insomnio.' },
+          { sessionNumber: 3, date: '2026-09-01', mood: 7, anxiety: 4, sleep: 7, adherencePercentage: 95, clinicalNotes: 'Consolidación de rutinas y reestructuración de pensamientos.' },
+        ],
+        notes: 'Excelente respuesta a la combinación de TCC y farmacoterapia.',
+      },
+      {
+        id: 'p-002',
+        fullName: 'Carlos Restrepo Gómez',
+        age: 42,
+        gender: 'Masculino',
+        fileNumber: 'EXP-2026-112',
+        admissionDate: '2026-07-20',
+        primaryDiagnosis: 'Trastorno de Ansiedad Generalizada (CIE-11: 6B00 / DSM-5: 300.02)',
+        currentMedications: ['Escitalopram', 'Clonazepam'],
+        riskLevel: 'Moderado',
+        therapeuticProgressPercentage: 54,
+        adherencePercentage: 74,
+        personalHistory: 'Director financiero con sobrecarga laboral, bruxismo y temores somáticos.',
+        pastoralModeAuthorized: false,
+        sessions: [
+          { sessionNumber: 1, date: '2026-07-25', mood: 5, anxiety: 9, sleep: 3, adherencePercentage: 70, clinicalNotes: 'Crisis de angustia frecuentes.' },
+          { sessionNumber: 2, date: '2026-08-10', mood: 6, anxiety: 6, sleep: 6, adherencePercentage: 78, clinicalNotes: 'Desensibilización interoceptiva y desescalada de Clonazepam.' },
+        ],
+        notes: 'En proceso de sustitución de conductas de seguridad por respiración.',
+      },
+    ];
+
+    const PHARMA_DB = [
+      { name: 'Sertralina', category: 'Antidepresivo (ISRS)', indications: 'Depresión Mayor, TOC, Pánico, TEPT', adverse: 'Náuseas, cefalea, insomnio inicial, disfunción sexual', psych: 'Latencia de 2 a 4 semanas. Durante el inicio puede haber aumento paradójico de ansiedad somática; psicoeducar para evitar abandono precoz.' },
+      { name: 'Escitalopram', category: 'Antidepresivo (ISRS)', indications: 'TAG, Fobia Social, Depresión Mayor', adverse: 'Boca seca, fatiga, leve prolongación QTc', psych: 'Alta tolerabilidad. Atenúa la hiperreactividad autonómica basal facilitando la exposición en TCC.' },
+      { name: 'Venlafaxina', category: 'Antidepresivo (IRSN Dual)', indications: 'Depresión resistente, TAG, Pánico', adverse: 'Sudoración, hipertensión en dosis altas, síndrome de discontinuación intenso', psych: 'Brinda activación motora en depresión melancólica. Si el paciente olvida una toma, puede simular un ataque de pánico súbito.' },
+      { name: 'Bupropión', category: 'Antidepresivo (IRDN)', indications: 'Depresión con anergia, cesación tabáquica', adverse: 'Insomnio, inquietud. Sin disfunción sexual. Baja umbral convulsivo', psych: 'Ideal cuando predomina abulia y anhedonia. Evitar absolutamente en antecedentes de bulimia o convulsiones.' },
+      { name: 'Clonazepam', category: 'Ansiolítico (Benzodiacepina)', indications: 'Crisis de pánico, ansiedad aguda severa', adverse: 'Sedación, amnesia anterógrada, dependencia física rápida', psych: 'El uso "por si acaso" perpetúa conductas de seguridad que impiden la extinción del condicionamiento del miedo. Reemplazar por autorregulación.' },
+      { name: 'Quetiapina', category: 'Antipsicótico Atípico', indications: 'Bipolaridad, insomnio refractario, depresión resistente', adverse: 'Sedación profunda matutina, aumento de peso, síndrome metabólico', psych: 'La sedación matutina puede provocar bradipsiquia; no confundir con resistencia o desinterés terapéutico.' },
+      { name: 'Carbonato de Litio', category: 'Estabilizador del Ánimo', indications: 'Trastorno Bipolar, prevención antisuicida', adverse: 'Temblor distal, poliuria, polidipsia, rango terapéutico estrecho', psych: 'Único fármaco con comprobada reducción del suicidio. Reforzar la adherencia inquebrantable y vigilar deshidratación.' },
+      { name: 'Lamotrigina', category: 'Estabilizador / Anticonvulsivo', indications: 'Depresión Bipolar, profilaxis de ciclación', adverse: 'Cefalea, mareo. Riesgo de erupción cutánea (Stevens-Johnson)', psych: 'Titulación lenta obligatoria. Si el paciente suspende > 5 días seguidos, debe reiniciar la titulación desde cero.' },
+      { name: 'Zolpidem', category: 'Hipnótico No Benzodiacepínico', indications: 'Insomnio de conciliación transitorio', adverse: 'Amnesia, conductas complejas del sueño (caminar dormido)', psych: 'Tomar inmediatamente antes de acostarse. Complementar siempre con TCC para el Insomnio (TCC-I).' },
+      { name: 'Metilfenidato', category: 'Psicoestimulante', indications: 'TDAH en niños y adultos, Narcolepsia', adverse: 'Inapetencia, insomnio, taquicardia, rebote vespertino', psych: 'Mejora la función ejecutiva y el control inhibitorio para estructurar técnicas de organización del tiempo.' },
+    ];
+
+    const TECHNIQUES_DB = [
+      { modality: 'TCC', title: 'Reestructuración Cognitiva & Registro A-B-C', objective: 'Flexibilizar interpretaciones catastrofistas y pensamientos automáticos negativos.', steps: ['1. Identificar el pensamiento caliente ante el malestar.', '2. Buscar evidencia objetiva a favor y en contra.', '3. Generar un pensamiento alternativo realista.'] },
+      { modality: 'ACT', title: 'Defusión Cognitiva & Valores Cardinales', objective: 'Desprenderse de los contenidos mentales tratándolos como productos verbales pasajeros.', steps: ['1. Notar: "Estoy teniendo el pensamiento de que voy a fallar".', '2. Ejercicio de la metáfora del cielo y el clima.', '3. Dar un paso concreto alineado a un valor.'] },
+      { modality: 'Esquemas', title: 'Modo Niño Vulnerable & Reparentalización', objective: 'Contener heridas tempranas de abandono o privación emocional con el Adulto Sano.', steps: ['1. Conexión somática de la angustia.', '2. Puente de afecto hacia recuerdos tempranos.', '3. Imaginería reescrita protectora.'] },
+      { modality: 'Entrevista Motivacional', title: 'Habilidades OARS & Balance Decisional', objective: 'Resolver la ambivalencia hacia el cambio y elicitar discurso de cambio propio.', steps: ['1. Preguntas abiertas.', '2. Afirmación de fortalezas.', '3. Reflejo complejo de pros y contras.'] },
+    ];
+
+    // --- MAIN REACT APPLICATION ---
+    function PastoralMenteStandaloneApp() {
+      const [patients, setPatients] = useState(INITIAL_PATIENTS);
+      const [selectedPatientId, setSelectedPatientId] = useState('p-001');
+      const [activeModule, setActiveModule] = useState('overview');
+      const patient = patients.find(p => p.id === selectedPatientId) || patients[0];
+
+      // Module 1 state
+      const [aiReason, setAiReason] = useState(patient.personalHistory || '');
+      const [aiResult, setAiResult] = useState(null);
+
+      // Module 4 state
+      const [selectedSymptoms, setSelectedSymptoms] = useState(['Somnolencia diurna', 'Ansiedad de rebote']);
+      const [symptomResult, setSymptomResult] = useState(null);
+
+      // Module 5 state
+      const [selectedMeds, setSelectedMeds] = useState(['Sertralina', 'Venlafaxina']);
+
+      // Module 7 scale state
+      const [scaleAnswers, setScaleAnswers] = useState({});
+      const [scaleScore, setScaleScore] = useState(null);
+
+      const runAIAnalysis = () => {
+        setAiResult({
+          clinicalSummary: `Paciente ${patient.fullName} en proceso de seguimiento por ${patient.primaryDiagnosis}. Presenta evolución favorable con necesidad de afianzar la alianza y monitorear la adherencia a ${patient.currentMedications.join(', ')}.`,
+          hypotheses: ['Mantenimiento de reactividad somática por esquemas de vulnerabilidad al daño.', 'Interacción entre latencia farmacológica e hipervigilancia atencional.'],
+          protectives: ['Búsqueda voluntaria de ayuda', 'Adecuada capacidad de introspección'],
+          risks: ['Riesgo de abandono si se intensifican molestias gastrointestinales transitorias.'],
+          recommendations: ['Entrenamiento en respiración diafragmática 4-7-8.', 'Psicoeducación sobre farmacocinética del antidepresivo.'],
+          questions: ['¿Qué significado le atribuyes a este síntoma en este momento?', '¿Qué paso compasivo puedes dar hoy hacia ti mismo/a?'],
+        });
+      };
+
+      const runSymptomAnalysis = () => {
+        setSymptomResult({
+          confidence: 90,
+          analysis: `Análisis diferencial de ${selectedSymptoms.join(', ')} bajo ${selectedMeds.join(', ')}: Componente mixto con somatización reactiva y efecto de adaptación transitoria.`,
+          pharmacological: 'Posible modulación receptorial central o histamínica H1.',
+          psychological: 'Preocupación metacognitiva y angustia anticipatoria de pérdida de control.',
+          mixed: 'Bucle de retroalimentación: el síntoma leve activa rumiación catastrófica.',
+        });
+      };
+
+      const calculatePHQ9 = () => {
+        const sum = Object.values(scaleAnswers).reduce((a, b) => a + b, 0);
+        let sev = 'Mínima o Ausente';
+        if (sum >= 15) sev = 'Moderadamente Grave';
+        else if (sum >= 10) sev = 'Moderada';
+        else if (sum >= 5) sev = 'Leve';
+        setScaleScore({ score: sum, severity: sev });
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+          {/* Ethical Banner */}
+          <div className="bg-slate-900 border-b border-slate-800 px-4 py-2 text-[11px] text-slate-300 flex items-center justify-between no-print">
+            <span><strong>Aviso Deontológico:</strong> Plataforma de apoyo al psicoterapeuta. NO diagnostica ni prescribe fármacos ni reemplaza la consulta médica/psiquiátrica.</span>
+            <span className="text-teal-400 font-mono text-[10px]">VERSIÓN COMPLETA PWA STANDALONE</span>
+          </div>
+
+          {/* Top Bar */}
+          <header className="h-14 bg-slate-900/90 border-b border-slate-800 px-4 flex items-center justify-between gap-4 sticky top-0 z-30">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center font-bold text-white text-xs">PM</div>
+              <span className="font-bold text-sm text-white">PastoralMente <span className="text-teal-400 font-light text-xs">Clinical AI</span></span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedPatientId}
+                onChange={(e) => setSelectedPatientId(e.target.value)}
+                className="bg-slate-800 border border-slate-700 text-xs text-white rounded-lg px-2.5 py-1"
+              >
+                {patients.map(p => (
+                  <option key={p.id} value={p.id}>{p.fullName} ({p.fileNumber})</option>
+                ))}
+              </select>
+            </div>
+          </header>
+
+          {/* Sub Navigation Bar */}
+          <div className="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center gap-1.5 overflow-x-auto text-xs no-print">
+            {[
+              { id: 'overview', label: 'Inicio' },
+              { id: 'module1', label: '1. IA Clínica' },
+              { id: 'module2', label: '2. Ficha Paciente' },
+              { id: 'module3', label: '3. Farmacología' },
+              { id: 'module4', label: '4. Síntoma-Fármaco' },
+              { id: 'module5', label: '5. Interacciones' },
+              { id: 'module6', label: '6. Seguimiento' },
+              { id: 'module7', label: '7. Escalas PHQ/GAD' },
+              { id: 'module8', label: '8. Predictivo' },
+              { id: 'module9', label: '9. Informes' },
+              { id: 'module10', label: '10. Psicoterapia' },
+              { id: 'module11', label: '11. Modo Pastoral' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveModule(tab.id)}
+                className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition ${
+                  activeModule === tab.id ? 'bg-teal-600 text-white font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Main Body */}
+          <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 space-y-6">
+            {/* OVERVIEW */}
+            {activeModule === 'overview' && (
+              <div className="space-y-6">
+                <div className="p-6 bg-gradient-to-r from-slate-900 to-teal-950/70 border border-slate-800 rounded-2xl">
+                  <h1 className="text-xl font-bold text-white">PastoralMente Clinical AI — Panel de Control</h1>
+                  <p className="text-xs text-slate-300 mt-1">Plataforma clínica integral para psicoterapeutas y profesionales de la salud mental.</p>
+                </div>
+
+                <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-xs text-slate-400">Paciente en Consulta:</span>
+                      <h2 className="text-lg font-bold text-white">{patient.fullName}</h2>
+                      <p className="text-xs text-teal-300">{patient.primaryDiagnosis}</p>
+                    </div>
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800">
+                      Riesgo {patient.riskLevel}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs pt-2">
+                    <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 text-[11px] block">Progreso Terapéutico</span>
+                      <span className="text-base font-bold font-mono text-teal-400">{patient.therapeuticProgressPercentage}%</span>
+                    </div>
+                    <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 text-[11px] block">Adherencia Farmacológica</span>
+                      <span className="text-base font-bold font-mono text-emerald-400">{patient.adherencePercentage}%</span>
+                    </div>
+                    <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 text-[11px] block">Sesiones Realizadas</span>
+                      <span className="text-base font-bold font-mono text-white">{patient.sessions.length}</span>
+                    </div>
+                    <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 text-[11px] block">Modo Pastoral</span>
+                      <span className="text-xs font-bold text-amber-400">{patient.pastoralModeAuthorized ? 'Autorizado' : 'Inactivo'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MODULE 1: CLINICAL AI */}
+            {activeModule === 'module1' && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-white">Módulo 1: IA Clínica Especializada</h2>
+                <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-3 text-xs">
+                  <div>
+                    <label className="block text-slate-300 font-semibold mb-1">Motivo de consulta y síntomas:</label>
+                    <textarea rows="3" value={aiReason} onChange={e => setAiReason(e.target.value)} className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white" />
+                  </div>
+                  <button onClick={runAIAnalysis} className="px-4 py-2 bg-teal-600 hover:bg-teal-500 font-bold text-white rounded-lg">
+                    Generar Formulación con IA Clínica
+                  </button>
+                </div>
+
+                {aiResult && (
+                  <div className="p-5 bg-slate-900 border border-teal-500/50 rounded-2xl space-y-4 text-xs animate-in fade-in">
+                    <div>
+                      <h3 className="font-bold text-teal-300 text-sm">Resumen Clínico</h3>
+                      <p className="text-slate-200 mt-1">{aiResult.clinicalSummary}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-amber-300">Hipótesis Terapéuticas</h4>
+                      <ul className="list-disc pl-5 text-slate-300 mt-1 space-y-1">{aiResult.hypotheses.map((h, i) => <li key={i}>{h}</li>)}</ul>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                        <strong className="text-emerald-400 block mb-1">Factores Protectores</strong>
+                        <ul className="text-slate-300 space-y-0.5">{aiResult.protectives.map((p, i) => <li key={i}>✓ {p}</li>)}</ul>
+                      </div>
+                      <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                        <strong className="text-rose-400 block mb-1">Factores de Riesgo</strong>
+                        <ul className="text-slate-300 space-y-0.5">{aiResult.risks.map((r, i) => <li key={i}>⚠ {r}</li>)}</ul>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-teal-950/30 rounded-xl border border-teal-800/40">
+                      <strong className="text-teal-300 block mb-1">Preguntas Socráticas para la Próxima Sesión:</strong>
+                      <ul className="italic text-slate-200 space-y-1">{aiResult.questions.map((q, i) => <li key={i}>«{q}»</li>)}</ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* MODULE 2: PATIENT PROFILE */}
+            {activeModule === 'module2' && (
+              <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4 text-xs">
+                <h2 className="text-lg font-bold text-white">Módulo 2: Ficha Completa del Paciente</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div><strong>Nombre:</strong> {patient.fullName}</div>
+                  <div><strong>Expediente:</strong> {patient.fileNumber}</div>
+                  <div><strong>Edad:</strong> {patient.age} años ({patient.gender})</div>
+                  <div><strong>Diagnóstico:</strong> {patient.primaryDiagnosis}</div>
+                  <div><strong>Medicamentos:</strong> {patient.currentMedications.join(', ')}</div>
+                  <div><strong>Adherencia:</strong> {patient.adherencePercentage}%</div>
+                </div>
+                <div className="pt-3 border-t border-slate-800">
+                  <strong>Antecedentes:</strong>
+                  <p className="text-slate-300 mt-1">{patient.personalHistory}</p>
+                </div>
+              </div>
+            )}
+
+            {/* MODULE 3: PHARMACOLOGY */}
+            {activeModule === 'module3' && (
+              <div className="space-y-4 text-xs">
+                <h2 className="text-lg font-bold text-white">Módulo 3: Base de Datos Farmacológica</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {PHARMA_DB.map((m, i) => (
+                    <div key={i} className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-1.5">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-bold text-white text-sm">{m.name}</h3>
+                        <span className="text-[10px] text-teal-400 font-semibold">{m.category}</span>
+                      </div>
+                      <p className="text-slate-300"><strong>Indicaciones:</strong> {m.indications}</p>
+                      <p className="text-amber-300/90"><strong>Efectos adversos:</strong> {m.adverse}</p>
+                      <div className="p-2.5 bg-slate-950 rounded-lg text-slate-200 border border-slate-800 mt-2">
+                        <strong className="text-teal-400 block mb-0.5">En Psicoterapia:</strong>
+                        {m.psych}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* MODULE 4: SYMPTOM - DRUG */}
+            {activeModule === 'module4' && (
+              <div className="space-y-4 text-xs">
+                <h2 className="text-lg font-bold text-white">Módulo 4: Análisis Síntoma - Medicamento</h2>
+                <div className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-3">
+                  <span className="font-bold text-white block">Síntomas Reportados:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {['Somnolencia diurna', 'Insomnio', 'Fatiga', 'Ansiedad de rebote', 'Agitación'].map(s => (
+                      <button key={s} onClick={() => setSelectedSymptoms(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])} className={`px-2.5 py-1 rounded-lg ${selectedSymptoms.includes(s) ? 'bg-teal-600 text-white font-bold' : 'bg-slate-950 text-slate-300 border border-slate-700'}`}>
+                        {selectedSymptoms.includes(s) ? '✓ ' : '+ '} {s}
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={runSymptomAnalysis} className="mt-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 font-bold text-white rounded-lg">
+                    Diferenciar Etiología Farmacológica vs Psicológica
+                  </button>
+                </div>
+
+                {symptomResult && (
+                  <div className="p-5 bg-slate-900 border border-teal-500/50 rounded-xl space-y-3">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-bold text-white text-sm">Resultado del Diagnóstico Diferencial</h3>
+                      <span className="font-mono text-teal-400 font-bold">{symptomResult.confidence}% Confianza</span>
+                    </div>
+                    <p className="text-slate-200">{symptomResult.analysis}</p>
+                    <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                      <strong className="text-amber-400 block mb-0.5">Relación Farmacológica:</strong>
+                      {symptomResult.pharmacological}
+                    </div>
+                    <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                      <strong className="text-teal-400 block mb-0.5">Relación Psicológica / Somatización:</strong>
+                      {symptomResult.psychological}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* MODULE 5: INTERACTIONS */}
+            {activeModule === 'module5' && (
+              <div className="space-y-4 text-xs">
+                <h2 className="text-lg font-bold text-white">Módulo 5: Interacciones Farmacológicas con Semáforo</h2>
+                <div className="space-y-3">
+                  <div className="p-4 bg-slate-900 border border-rose-800/80 rounded-xl">
+                    <div className="flex justify-between items-center text-rose-300 font-bold">
+                      <span>Sertralina + Venlafaxina</span>
+                      <span className="px-2 py-0.5 bg-rose-950 text-rose-200 rounded">🔴 Alto Riesgo</span>
+                    </div>
+                    <p className="text-slate-300 mt-1">Riesgo de Síndrome Serotoninérgico Severo por doble inhibición masiva de recaptación de serotonina. Contraindicado.</p>
+                  </div>
+
+                  <div className="p-4 bg-slate-900 border border-amber-800/80 rounded-xl">
+                    <div className="flex justify-between items-center text-amber-300 font-bold">
+                      <span>Clonazepam + Quetiapina</span>
+                      <span className="px-2 py-0.5 bg-amber-950 text-amber-200 rounded">🟡 Riesgo Moderado</span>
+                    </div>
+                    <p className="text-slate-300 mt-1">Potenciación de depresión del SNC, sedación diurna profunda e hipotensión ortostática.</p>
+                  </div>
+
+                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
+                    <div className="flex justify-between items-center text-emerald-300 font-bold">
+                      <span>Sertralina + Bupropión</span>
+                      <span className="px-2 py-0.5 bg-emerald-950 text-emerald-200 rounded">🟢 Riesgo Bajo / Sinérgico</span>
+                    </div>
+                    <p className="text-slate-300 mt-1">Combinación terapéutica frecuente para contrarrestar la disfunción sexual inducida por ISRS.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MODULE 6: MONITORING */}
+            {activeModule === 'module6' && (
+              <div className="space-y-4 text-xs">
+                <h2 className="text-lg font-bold text-white">Módulo 6: Seguimiento Clínico y Curvas de Evolución</h2>
+                <div className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-3">
+                  <span className="font-bold text-white block">Historial de Sesiones Registradas:</span>
+                  <div className="space-y-2">
+                    {patient.sessions.map((s, i) => (
+                      <div key={i} className="p-3 bg-slate-950 rounded-lg border border-slate-800 flex justify-between items-center">
+                        <div>
+                          <strong>Sesión #{s.sessionNumber} ({s.date}):</strong> {s.clinicalNotes}
+                        </div>
+                        <div className="flex gap-2 font-mono text-teal-400">
+                          <span>Ánimo: {s.mood}/10</span>
+                          <span>Ans: {s.anxiety}/10</span>
+                          <span>Adh: {s.adherencePercentage}%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MODULE 7: SCALES */}
+            {activeModule === 'module7' && (
+              <div className="space-y-4 text-xs">
+                <h2 className="text-lg font-bold text-white">Módulo 7: Escalas Clínicas (PHQ-9)</h2>
+                <div className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-3">
+                  <p className="text-slate-300 italic">Durante las últimas 2 semanas, ¿con qué frecuencia le han molestado los siguientes problemas?</p>
+                  {[
+                    '1. Poco interés o placer en hacer las cosas (anhedonia)',
+                    '2. Sentirse desanimado/a, deprimido/a o sin esperanzas',
+                    '3. Dificultad para conciliar o mantener el sueño',
+                    '4. Sentirse cansado/a o con poca energía',
+                  ].map((q, idx) => (
+                    <div key={idx} className="p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-2">
+                      <span className="text-white font-medium">{q}</span>
+                      <div className="flex gap-2">
+                        {[0, 1, 2, 3].map(val => (
+                          <button
+                            key={val}
+                            onClick={() => setScaleAnswers({ ...scaleAnswers, [`q${idx}`]: val })}
+                            className={`px-3 py-1 rounded ${scaleAnswers[`q${idx}`] === val ? 'bg-teal-600 text-white font-bold' : 'bg-slate-900 text-slate-400 border border-slate-800'}`}
+                          >
+                            {val}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  <button onClick={calculatePHQ9} className="px-4 py-2 bg-teal-600 hover:bg-teal-500 font-bold text-white rounded-lg">
+                    Calcular Puntaje PHQ-9
+                  </button>
+                </div>
+
+                {scaleScore && (
+                  <div className="p-4 bg-slate-900 border border-teal-500 rounded-xl flex justify-between items-center">
+                    <div>
+                      <span className="text-xs text-slate-400">Puntaje Total Obtenido:</span>
+                      <div className="text-xl font-bold font-mono text-white">{scaleScore.score} / 12 puntos</div>
+                    </div>
+                    <span className="text-xs font-bold px-3 py-1 rounded bg-teal-950 text-teal-300 border border-teal-800">
+                      {scaleScore.severity}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* MODULE 8: PREDICTIVE */}
+            {activeModule === 'module8' && (
+              <div className="space-y-4 text-xs">
+                <h2 className="text-lg font-bold text-white">Módulo 8: Seguimiento Predictivo de Riesgos</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
+                    <span className="text-slate-400 block">Riesgo de Abandono</span>
+                    <span className="text-xl font-bold font-mono text-amber-400">28% (Medio)</span>
+                  </div>
+                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
+                    <span className="text-slate-400 block">Riesgo de Recaída</span>
+                    <span className="text-xl font-bold font-mono text-emerald-400">18% (Bajo)</span>
+                  </div>
+                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
+                    <span className="text-slate-400 block">Deterioro Emocional</span>
+                    <span className="text-sm font-bold text-emerald-300">No detectado</span>
+                  </div>
+                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
+                    <span className="text-slate-400 block">Alerta Adherencia</span>
+                    <span className="text-sm font-bold text-teal-300">Adecuada (92%)</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MODULE 9: REPORTS */}
+            {activeModule === 'module9' && (
+              <div className="space-y-4 text-xs">
+                <div className="flex justify-between items-center no-print">
+                  <h2 className="text-lg font-bold text-white">Módulo 9: Generador de Informes Clínicos</h2>
+                  <button onClick={() => window.print()} className="px-4 py-2 bg-teal-600 hover:bg-teal-500 font-bold text-white rounded-lg">
+                    Imprimir / Exportar a PDF
+                  </button>
+                </div>
+
+                <div className="p-8 bg-white text-slate-900 rounded-2xl border border-slate-300 space-y-4 shadow-lg print:border-none print:shadow-none">
+                  <div className="border-b-2 border-slate-800 pb-3 flex justify-between">
+                    <div>
+                      <h3 className="font-bold text-base uppercase">Centro PastoralMente Clinical AI</h3>
+                      <p className="text-xs text-slate-600">Dra. Sofía Alarcón · Colegiada Nº COL-PSI-28491</p>
+                    </div>
+                    <span className="font-mono text-xs">{new Date().toLocaleDateString()}</span>
+                  </div>
+                  <h4 className="text-center font-bold text-sm uppercase underline">Informe de Evolución Psicoterapéutica</h4>
+                  <p><strong>Paciente:</strong> {patient.fullName} | <strong>Expediente:</strong> {patient.fileNumber} | <strong>Diagnóstico:</strong> {patient.primaryDiagnosis}</p>
+                  <p className="leading-relaxed">El/la paciente ha mostrado adecuada respuesta a las intervenciones cognitivo-conductuales implementadas, logrando estabilización del ciclo del sueño y reducción de la rumiación nocturna con el esquema farmacológico coordinado.</p>
+                  <div className="pt-6 text-right">
+                    <div className="w-40 border-b border-slate-800 ml-auto mb-1"></div>
+                    <span className="font-bold text-xs">Firma del Profesional Tratante</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MODULE 10: LIBRARY */}
+            {activeModule === 'module10' && (
+              <div className="space-y-4 text-xs">
+                <h2 className="text-lg font-bold text-white">Módulo 10: Biblioteca de Psicoterapia Basada en Evidencia</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {TECHNIQUES_DB.map((t, i) => (
+                    <div key={i} className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-teal-400 border border-slate-700">
+                        {t.modality}
+                      </span>
+                      <h3 className="font-bold text-white text-sm">{t.title}</h3>
+                      <p className="text-slate-300">{t.objective}</p>
+                      <ul className="text-slate-400 space-y-1 pt-1 border-t border-slate-800">
+                        {t.steps.map((st, j) => <li key={j}>{st}</li>)}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* MODULE 11: PASTORAL */}
+            {activeModule === 'module11' && (
+              <div className="space-y-4 text-xs">
+                <h2 className="text-lg font-bold text-white">Módulo 11: Acompañamiento Pastoral (Optativo)</h2>
+                {patient.pastoralModeAuthorized ? (
+                  <div className="p-5 bg-slate-900 border border-amber-800/60 rounded-2xl space-y-3">
+                    <span className="text-amber-400 font-bold block">Filipenses 4:6-7 — Paz que sobrepasa todo entendimiento</span>
+                    <p className="text-slate-200 italic">"Por nada estéis afanosos, sino sean conocidas vuestras peticiones delante de Dios en toda oración y ruego, con acción de gracias..."</p>
+                    <p className="text-slate-300 leading-relaxed">Rendir el control no es debilidad, es el mayor acto de descanso del alma. Permite que tu mente descanse sabiendo que tu vida está en manos fieles.</p>
+                  </div>
+                ) : (
+                  <div className="p-8 bg-slate-900 border border-slate-800 rounded-2xl text-center space-y-2">
+                    <span className="text-amber-400 font-bold">Consentimiento No Otorgado</span>
+                    <p className="text-slate-400">Este módulo solo se activa con autorización expresa del paciente.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<PastoralMenteStandaloneApp />);
+  </script>
+</body>
+</html>
