@@ -2675,14 +2675,14 @@ async function createNewPatient() {
 
     appState.patients.push(nuevoPaciente);
 
-    localStorage.setItem(
-        'pastoralmente_patients_backup',
-        JSON.stringify(appState.patients)
-    );
+await dbSave(
+    'patients',
+    nuevoPaciente
+);
 
-    alert('Paciente creado correctamente');
+alert('Paciente creado correctamente');
 
-    location.reload();
+location.reload();
 }
     // --- INITIALIZE APPLICATION ON DOM LOAD ---
     document.addEventListener('DOMContentLoaded', bootApplication);
