@@ -2647,19 +2647,41 @@
     }
 async function createNewPatient() {
 
-    const nombre = prompt('Nombre completo del paciente:');
+    const nombre = prompt('Nombre completo:');
+if (!nombre) return;
+
+const edad = prompt('Edad:') || '';
+
+const sexo = prompt('Sexo:') || '';
+
+const documento = prompt('Documento:') || '';
+
+const telefono = prompt('Teléfono:') || '';
+
+const email = prompt('Correo:') || '';
+
+const diagnostico = prompt('Diagnóstico inicial:') || '';
 
     if (!nombre) return;
 
     const nuevoPaciente = {
+      documentNumber: documento,
+
+phone: telefono,
+
+email: email,
         id: 'p-' + Date.now(),
         fullName: nombre,
-        age: 0,
-        gender: 'Pendiente',
-        fileNumber: 'EXP-' + Date.now(),
+        age: edad,
+        gender: sexo,
+       fileNumber:
+'PM-' +
+new Date().getFullYear() +
+'-' +
+Math.floor(Math.random()*1000) 
         admissionDate: new Date().toISOString().split('T')[0],
         emergencyContact: '',
-        primaryDiagnosis: 'Pendiente de evaluación',
+        primaryDiagnosis: diagnostico,
 
         currentMedications: [],
         previousMedications: [],
@@ -2711,6 +2733,29 @@ alert('Paciente creado correctamente');
 location.reload();
 }
     // --- INITIALIZE APPLICATION ON DOM LOAD ---
+    async function deleteCurrentPatient(){
+
+    if(!confirm('Eliminar paciente?')){
+        return;
+    }
+
+    const id =
+        appState.selectedPatientId;
+
+    appState.patients =
+        appState.patients.filter(
+            p => p.id !== id
+        );
+
+    localStorage.setItem(
+        'pastoralmente_patients_backup',
+        JSON.stringify(
+            appState.patients
+        )
+    );
+
+    location.reload();
+}
     document.addEventListener('DOMContentLoaded', bootApplication);
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
       bootApplication();
@@ -2734,5 +2779,24 @@ z-index:99999;
 ">
 +
 </button>
+  ✏️
+  <button
+onclick="deleteCurrentPatient()"
+style="
+position:fixed;
+bottom:95px;
+right:20px;
+width:60px;
+height:60px;
+border-radius:50%;
+border:none;
+background:#dc2626;
+color:white;
+font-size:24px;
+cursor:pointer;
+z-index:99999;">
+🗑
+</button>
+  Exportar Paciente PDF
 </body>
 </html>
