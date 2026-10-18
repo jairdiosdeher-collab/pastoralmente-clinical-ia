@@ -2768,6 +2768,25 @@ const correo = prompt('Correo electrónico:') || '';
 const ciudad = prompt('Ciudad:') || '';
 
 const diagnostico = prompt('Diagnóstico principal:') || '';
+  const eps =
+    prompt('EPS:') || '';
+
+const ocupacion =
+    prompt('Ocupación:') || '';
+
+const contactoEmergencia =
+    prompt('Contacto de emergencia:') || '';
+
+const telefonoEmergencia =
+    prompt('Teléfono contacto emergencia:') || '';
+
+const edad =
+    parseInt(
+        prompt('Edad:')
+    ) || 0;
+
+const sexo =
+    prompt('Sexo:') || '';
 
     if (!nombre) return;
 
@@ -2777,16 +2796,24 @@ const diagnostico = prompt('Diagnóstico principal:') || '';
      documentNumber: documento,
       documentType: 'CC',
 birthDate: '',
-city: '',
+city: ciudad,
+
 referralSource: '',
 phone: telefono,
-email: '',
+email: correo,
 address: '',
-occupation: '',
-insurance: '',
-      maritalStatus: '',
-educationLevel: '',
-emergencyContactName: '',
+occupation: ocupacion,
+
+insurance: eps,
+
+emergencyContactName:
+contactoEmergencia,
+
+emergencyContactPhone:
+telefonoEmergencia,
+
+primaryDiagnosis:
+diagnostico,
 emergencyContactPhone: '',
 allergies: '',
       bloodType: '',
