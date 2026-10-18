@@ -2349,7 +2349,9 @@
               ` : `
                 <div>
                   <h3 class="font-bold text-slate-950 text-xs border-b border-slate-200 pb-1">1. Motivo del Informe y Antecedentes Clínicos</h3>
-                  <p class="pt-1">El presente documento se emite con fines estrictamente clínicos y de coordinación profesional. El/la paciente se encuentra en tratamiento ambulatorio abordando sintomatología vinculada a ${p.primaryDiagnosis}.</p>
+                  <p class="pt-1"><p class="pt-1">
+El presente informe psicológico clínico integral se emite para documentar el proceso terapéutico de ${p.fullName}, identificado mediante el expediente ${p.fileNumber}, quien recibe atención clínica por ${p.primaryDiagnosis || 'diagnóstico pendiente'}, registrando una edad de ${p.age || 'No registrada'} años.
+</p>. El/la paciente se encuentra en tratamiento ambulatorio abordando sintomatología vinculada a ${p.primaryDiagnosis}.</p>
                 </div>
                 <div>
                   <h3 class="font-bold text-slate-950 text-xs border-b border-slate-200 pb-1">2. Integración Farmacoterapéutica</h3>
