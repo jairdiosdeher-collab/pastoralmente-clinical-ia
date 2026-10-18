@@ -1987,14 +1987,14 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
               <div><strong class="text-slate-400 block">Nombre Completo:</strong><span class="text-white font-bold sensitive-blur">${p.fullName}</span></div>
               <div><strong class="text-slate-400 block">Nº Expediente:</strong><span class="text-teal-400 font-mono font-bold">${p.fileNumber}</span></div>
-              <div><strong class="text-slate-400 block">Edad / Sexo:</strong><span class="text-white">${p.age} años (${p.gender})</span></div>
+              <div><strong class="text-slate-400 block">Edad / Sexo:</strong><span class="text-white">${p.age || 'No registrado'} años (${p.gender || 'No registrado'})})</span></div>
               <div><strong class="text-slate-400 block">Fecha de Ingreso:</strong><span class="text-white font-mono">${p.admissionDate}</span></div>
             </div>
 
             <div class="pt-4 border-t border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div>
                 <strong class="text-teal-400 block mb-1">Diagnóstico Principal (CIE-11 / DSM-5):</strong>
-                <p class="text-slate-200">${p.primaryDiagnosis}</p>
+                <p class="text-slate-200">${p.primaryDiagnosis || 'No registrado'}</p>
               </div>
               <div>
                 <strong class="text-slate-400 block mb-1">Contacto de Emergencia:</strong>
