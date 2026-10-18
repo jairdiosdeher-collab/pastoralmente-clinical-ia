@@ -2865,6 +2865,39 @@ alert('Paciente creado correctamente');
 location.reload();
 }
     // --- INITIALIZE APPLICATION ON DOM LOAD ---
+    function deleteCurrentPatient() {
+
+    const paciente = appState.patients.find(
+        p => p.id === appState.selectedPatientId
+    );
+
+    if (!paciente) {
+        alert('No hay paciente seleccionado');
+        return;
+    }
+
+    const confirmar = confirm(
+        '¿Eliminar paciente "' +
+        paciente.fullName +
+        '"?'
+    );
+
+    if (!confirmar) return;
+
+    appState.patients =
+        appState.patients.filter(
+            p => p.id !== paciente.id
+        );
+
+    localStorage.setItem(
+        'pastoralmente_patients_backup',
+        JSON.stringify(appState.patients)
+    );
+
+    alert('Paciente eliminado');
+
+    location.reload();
+}
     document.addEventListener('DOMContentLoaded', bootApplication);
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
       bootApplication();
@@ -2887,5 +2920,21 @@ z-index:99999;
 +
 </button>
 
-
+<button
+onclick="deleteCurrentPatient()"
+style="
+position:fixed;
+bottom:95px;
+right:20px;
+width:60px;
+height:60px;
+border:none;
+border-radius:50%;
+background:#dc2626;
+color:white;
+font-size:24px;
+cursor:pointer;
+z-index:99999;">
+🗑
+</button>
 </body></html>
