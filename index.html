@@ -2655,14 +2655,40 @@ async function createNewPatient() {
         id: 'p-' + Date.now(),
         fullName: nombre,
         age: 0,
-        gender: '',
+        gender: 'Pendiente',
         fileNumber: 'EXP-' + Date.now(),
         admissionDate: new Date().toISOString().split('T')[0],
+        emergencyContact: '',
+        primaryDiagnosis: 'Pendiente de evaluación',
+
         currentMedications: [],
         previousMedications: [],
+
+        substances: '',
+        medicalHistory: '',
+        psychiatricHistory: '',
+        familyHistory: '',
+
+        protectiveFactors: '',
+        riskFactors: '',
+
+        riskLevel: 'Bajo',
+
+        therapeuticProgressPercentage: 0,
+        adherencePercentage: 0,
+        pastoralModeAuthorized: false,
+
         timeline: [],
         sessions: [],
         scales: []
+    };
+
+    await dbSave('patients', nuevoPaciente);
+
+    alert('Paciente creado correctamente');
+
+    location.reload();
+}
     };
 
     if (!window.appState) {
