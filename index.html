@@ -1513,8 +1513,15 @@
                 <button onclick="switchModule('clinical_engine')" class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 touch-target">
                   <span>🧠 Nueva Formulación 4P</span>
                 </button>
-                <button onclick="switchModule('scales')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs rounded-xl transition flex items-center gap-1.5 touch-target">
-                  <span>📋 Administrar Escala</span>
+                <button onclick="switchModule('scales')" class="px-4 py-2 bg-slate-800">
+    <span>📋 Administrar Escala</span>
+</button>
+
+<button
+onclick="showPatientManager()"
+class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">
+
+<span>👥 Administrar 
                 </button>
                 <button onclick="switchModule('reports')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs rounded-xl transition flex items-center gap-1.5 touch-target">
                   <span>📄 Emitir Informe PDF</span>
@@ -2755,6 +2762,13 @@ location.reload();
     );
 
     location.reload();
+}
+    function showPatientManager(){
+
+    alert(
+        'Módulo Administrar Pacientes funcionando'
+    );
+
 }
     document.addEventListener('DOMContentLoaded', bootApplication);
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
