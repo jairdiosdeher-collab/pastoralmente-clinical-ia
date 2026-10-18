@@ -2645,12 +2645,68 @@
           triggerFileDownload(blob, 'pastoralmente_clinical_ai.html');
         });
     }
+async function createNewPatient() {
 
+    const nombre = prompt('Nombre completo del paciente:');
+
+    if (!nombre) return;
+
+    const nuevoPaciente = {
+        id: 'p-' + Date.now(),
+        fullName: nombre,
+        age: 0,
+        gender: '',
+        fileNumber: 'EXP-' + Date.now(),
+        admissionDate: new Date().toISOString().split('T')[0],
+        currentMedications: [],
+        previousMedications: [],
+        timeline: [],
+        sessions: [],
+        scales: []
+    };
+
+    if (!window.appState) {
+        window.appState = {};
+    }
+
+    if (!appState.patients) {
+        appState.patients = [];
+    }
+
+    appState.patients.push(nuevoPaciente);
+
+    localStorage.setItem(
+        'pastoralmente_patients_backup',
+        JSON.stringify(appState.patients)
+    );
+
+    alert('Paciente creado correctamente');
+
+    location.reload();
+}
     // --- INITIALIZE APPLICATION ON DOM LOAD ---
     document.addEventListener('DOMContentLoaded', bootApplication);
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
       bootApplication();
     }
   </script>
+  <button
+onclick="createNewPatient()"
+style="
+position:fixed;
+bottom:20px;
+right:20px;
+width:60px;
+height:60px;
+border:none;
+border-radius:50%;
+background:#2563eb;
+color:white;
+font-size:30px;
+cursor:pointer;
+z-index:99999;
+">
++
+</button>
 </body>
 </html>
