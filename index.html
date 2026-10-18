@@ -2756,7 +2756,18 @@
     }
 async function createNewPatient() {
 
-    const nombre = prompt('Nombre completo del paciente:');
+    const nombre = prompt('Nombre completo:');
+if (!nombre) return;
+
+const documento = prompt('Documento de identidad:') || '';
+
+const telefono = prompt('Teléfono:') || '';
+
+const correo = prompt('Correo electrónico:') || '';
+
+const ciudad = prompt('Ciudad:') || '';
+
+const diagnostico = prompt('Diagnóstico principal:') || '';
 
     if (!nombre) return;
 
