@@ -594,62 +594,7 @@
         req.onerror = () => reject(req.error);
       });
     }
-async function dbDelete(storeName, key) {
 
-    if (!dbInstance) await initIndexedDB();
-
-    return new Promise((resolve, reject) => {
-
-        const tx =
-            dbInstance.transaction(
-                storeName,
-                'readwrite'
-            );
-
-        const store =
-            tx.objectStore(
-                storeName
-            );
-
-        const req =
-            store.delete(key);
-
-        req.onsuccess =
-            () => resolve(true);
-
-        req.onerror =
-            () => reject(req.error);
-
-    });
-
-}
-    if (!dbInstance) await initIndexedDB();
-
-    return new Promise((resolve, reject) => {
-
-        const tx =
-            dbInstance.transaction(
-                storeName,
-                'readwrite'
-            );
-
-        const store =
-            tx.objectStore(
-                storeName
-            );
-
-        const req =
-            store.delete(key);
-
-        req.onsuccess =
-            () => resolve(true);
-
-        req.onerror =
-            () => reject(req.error);
-
-    });
-
-}
     // --- 2. 100+ PHARMACOLOGY DATABASE ---
     const PHARMA_DATABASE = [
       // Antidepresivos ISRS
@@ -2042,14 +1987,14 @@ async function dbDelete(storeName, key) {
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
               <div><strong class="text-slate-400 block">Nombre Completo:</strong><span class="text-white font-bold sensitive-blur">${p.fullName}</span></div>
               <div><strong class="text-slate-400 block">Nº Expediente:</strong><span class="text-teal-400 font-mono font-bold">${p.fileNumber}</span></div>
-              <div><strong class="text-slate-400 block">Edad / Sexo:</strong><span class="text-white">${p.age || 'No registrado'} años (${p.gender || 'No registrado'})})</span></div>
+              <div><strong class="text-slate-400 block">Edad / Sexo:</strong><span class="text-white">${p.age} años (${p.gender})</span></div>
               <div><strong class="text-slate-400 block">Fecha de Ingreso:</strong><span class="text-white font-mono">${p.admissionDate}</span></div>
             </div>
 
             <div class="pt-4 border-t border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div>
                 <strong class="text-teal-400 block mb-1">Diagnóstico Principal (CIE-11 / DSM-5):</strong>
-                <p class="text-slate-200">${p.primaryDiagnosis || 'No registrado'}</p>
+                <p class="text-slate-200">${p.primaryDiagnosis}</p>
               </div>
               <div>
                 <strong class="text-slate-400 block mb-1">Contacto de Emergencia:</strong>
@@ -2404,9 +2349,7 @@ async function dbDelete(storeName, key) {
               ` : `
                 <div>
                   <h3 class="font-bold text-slate-950 text-xs border-b border-slate-200 pb-1">1. Motivo del Informe y Antecedentes Clínicos</h3>
-                  <p class="pt-1"><p class="pt-1">
-El presente informe psicológico clínico integral se emite para documentar el proceso terapéutico de ${p.fullName}, identificado mediante el expediente ${p.fileNumber}, quien recibe atención clínica por ${p.primaryDiagnosis || 'diagnóstico pendiente'}, registrando una edad de ${p.age || 'No registrada'} años.
-</p>. El/la paciente se encuentra en tratamiento ambulatorio abordando sintomatología vinculada a ${p.primaryDiagnosis}.</p>
+                  <p class="pt-1">El presente documento se emite con fines estrictamente clínicos y de coordinación profesional. El/la paciente se encuentra en tratamiento ambulatorio abordando sintomatología vinculada a ${p.primaryDiagnosis}.</p>
                 </div>
                 <div>
                   <h3 class="font-bold text-slate-950 text-xs border-b border-slate-200 pb-1">2. Integración Farmacoterapéutica</h3>
@@ -2813,85 +2756,16 @@ El presente informe psicológico clínico integral se emite para documentar el p
     }
 async function createNewPatient() {
 
-    const nombre = prompt('Nombre completo:');
-if (!nombre) return;
-
-const documento = prompt('Documento de identidad:') || '';
-
-const telefono = prompt('Teléfono:') || '';
-
-const correo = prompt('Correo electrónico:') || '';
-
-const ciudad = prompt('Ciudad:') || '';
-
-const diagnostico = prompt('Diagnóstico principal:') || '';
-  const eps =
-    prompt('EPS:') || '';
-
-const ocupacion =
-    prompt('Ocupación:') || '';
-
-const contactoEmergencia =
-    prompt('Contacto de emergencia:') || '';
-
-const telefonoEmergencia =
-    prompt('Teléfono contacto emergencia:') || '';
-
-const edad =
-    parseInt(
-        prompt('Edad:')
-    ) || 0;
-
-const sexo =
-    prompt('Sexo:') || '';
+    const nombre = prompt('Nombre completo del paciente:');
 
     if (!nombre) return;
 
     const nuevoPaciente = {
         id: 'p-' + Date.now(),
         fullName: nombre,
-     documentNumber: documento,
-      documentType: 'CC',
-birthDate: '',
-city: ciudad,
-
-referralSource: '',
-phone: telefono,
-email: correo,
-address: '',
-occupation: ocupacion,
-
-insurance: eps,
-
-emergencyContactName:
-contactoEmergencia,
-
-emergencyContactPhone:
-telefonoEmergencia,
-
-primaryDiagnosis:
-diagnostico,
-emergencyContactPhone: '',
-allergies: '',
-      bloodType: '',
-secondaryDiagnosis: '',
-      primaryDiagnosis: diagnostico,
-medicalHistory: '',
-psychiatricHistory: '',
-familyHistory: '',
-observations: '',
-      therapeuticGoals: '',
-treatmentPlan: '',
-clinicalNotes: '',
-riskFactors: '',
-protectiveFactors: '',
-status: 'Activo',
-totalSessions: 0,
-lastVisitDate: null,
-nextAppointment: null, 
-        age: edad,
-        gender: sexo,
-        fileNumber: `PM-${new Date().getFullYear()}-${String((appState?.patients?.length || 0) + 1).padStart(3,'0')}`,
+        age: 0,
+        gender: '',
+        fileNumber: 'EXP-' + Date.now(),
         admissionDate: new Date().toISOString().split('T')[0],
         currentMedications: [],
         previousMedications: [],
@@ -2920,86 +2794,6 @@ alert('Paciente creado correctamente');
 location.reload();
 }
     // --- INITIALIZE APPLICATION ON DOM LOAD ---
-    function deleteCurrentPatient() {
-
-    const paciente = appState.patients.find(
-        p => p.id === appState.selectedPatientId
-    );
-
-    if (!paciente) {
-        alert('No hay paciente seleccionado');
-        return;
-    }
-
-    const confirmar = confirm(
-        '¿Eliminar paciente "' +
-        paciente.fullName +
-        '"?'
-    );
-
-    if (!confirmar) return;
-
-    await dbDelete(
-    'patients',
-    paciente.id
-);
-
-appState.patients =
-    appState.patients.filter(
-        p => p.id !== paciente.id
-    );
-
-async function deleteCurrentPatient() {
-
-    const paciente =
-        appState.patients.find(
-            p => p.id === appState.selectedPatientId
-        );
-
-    if (!paciente) {
-        alert('No hay paciente seleccionado');
-        return;
-    }
-
-    const confirmar = confirm(
-        '¿Eliminar paciente "' +
-        paciente.fullName +
-        '"?'
-    );
-
-    if (!confirmar) return;
-
-    try {
-
-        await dbDelete(
-            'patients',
-            paciente.id
-        );
-
-        appState.patients =
-            appState.patients.filter(
-                p => p.id !== paciente.id
-            );
-
-        localStorage.setItem(
-            'pastoralmente_patients_backup',
-            JSON.stringify(appState.patients)
-        );
-
-
-        location.reload();
-
-    } catch (error) {
-
-    console.error(error);
-
-    alert(
-        error?.message || String(error)
-    );
-
-}
-
-}
     document.addEventListener('DOMContentLoaded', bootApplication);
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
       bootApplication();
@@ -3022,21 +2816,5 @@ z-index:99999;
 +
 </button>
 
-<button
-onclick="deleteCurrentPatient()"
-style="
-position:fixed;
-bottom:95px;
-right:20px;
-width:60px;
-height:60px;
-border:none;
-border-radius:50%;
-background:#dc2626;
-color:white;
-font-size:24px;
-cursor:pointer;
-z-index:99999;">
-🗑
-</button>
+
 </body></html>
