@@ -595,7 +595,6 @@
       });
     }
 async function dbDelete(storeName, key) {
-async function dbDelete(storeName, key) {
 
     if (!dbInstance) await initIndexedDB();
 
@@ -2950,19 +2949,56 @@ appState.patients =
         p => p.id !== paciente.id
     );
 
-localStorage.setItem(
-    'pastoralmente_patients_backup',
-    JSON.stringify(appState.patients)
-);
+async function deleteCurrentPatient() {
 
-console.log(
-    'Paciente eliminado:',
-    paciente.id
-);
+    const paciente =
+        appState.patients.find(
+            p => p.id === appState.selectedPatientId
+        );
 
-    alert('Paciente eliminado');
+    if (!paciente) {
+        alert('No hay paciente seleccionado');
+        return;
+    }
 
-    location.reload();
+    const confirmar = confirm(
+        '¿Eliminar paciente "' +
+        paciente.fullName +
+        '"?'
+    );
+
+    if (!confirmar) return;
+
+    try {
+
+        await dbDelete(
+            'patients',
+            paciente.id
+        );
+
+        appState.patients =
+            appState.patients.filter(
+                p => p.id !== paciente.id
+            );
+
+        localStorage.setItem(
+            'pastoralmente_patients_backup',
+            JSON.stringify(appState.patients)
+        );
+
+
+        location.reload();
+
+    } catch (error) {
+
+    console.error(error);
+
+    alert(
+        error?.message || String(error)
+    );
+
+}
+
 }
     document.addEventListener('DOMContentLoaded', bootApplication);
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
